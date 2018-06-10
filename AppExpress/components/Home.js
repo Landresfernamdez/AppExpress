@@ -29,23 +29,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 10,
     flexDirection: 'column',
+  },modalImg1: {
+    marginTop: 10,
+    flexDirection: 'row',
   },modal1: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+  },modal3: {
+    flex: 1,
+    flexDirection: 'column'
   },
   img:{
     marginTop: 10,
     marginLeft: 0,
     width: 193,
     height: 110,
+  },
+  img1:{
+    marginTop: 10,
+    marginLeft: 0,
+    width: 50,
+    height: 50,
+  },img_car:{
+    marginTop: 10,
+    marginLeft: 0,
+    width: 50,
+    height: 50,
   },modal:{
     justifyContent:'center',
     borderRadius: Platform.OS==='android'?30:0,
     shadowRadius: 10,
     width:screen.width-80,
     height:280
+  },modal2:{
+    justifyContent:'center',
+    borderRadius: Platform.OS==='android'?30:0,
+    shadowRadius: 5,
+    width:screen.width-10,
+    height:screen.height-10
   },botonModal:{
     marginBottom:0
   },botonHeader:{
@@ -60,7 +83,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowRadius: 10,
     shadowOpacity: 0.35,
-
   },icon: {
     width: 24,
     height: 24,
@@ -88,7 +110,7 @@ export default class Home extends React.Component {
     }, 25000);
     this.arrayholder=[{'nombre':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
     let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    this.arrayholder1=[{'nombre':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
+    this.arrayholder1=[{'producto':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
     let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       value:0,
@@ -96,7 +118,8 @@ export default class Home extends React.Component {
       dataSource1:ds.cloneWithRows(this.arrayholder1),
       text:"",
       modalVisible:false,
-      producto:{'nombre':'','imagen':'','precio':'','ingredientes':'','cantidadcalorias':''},
+      modalCarritoVisible:false,
+      producto:{'producto':'','imagen':'','precio':'','ingredientes':'','cantidadcalorias':''},
       isLoading: true
     };
 
@@ -144,23 +167,40 @@ GetListViewItem (data){
       'modalVisible':true
                  })
                 }
+  GetListCar(){
+      console.log(this.arrayholder1);
+      let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+            this.setState({
+              dataSource1: ds.cloneWithRows(this.arrayholder1),
+              modalCarritoVisible:true
+            }, function() {
+            })
+                }
  setStateModal(){
   this.setState({
     'modalVisible':false
                })
 }
+setStateModalCarrito(){
+  this.setState({
+    'modalCarritoVisible':false
+               })
+
+}
 addShoppinCar(producto){
+  console.log(producto);
     this.arrayholder1.push(producto);
+    console.log(this.arrayholder1);
     let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
           this.setState({
             dataSource1: ds1.cloneWithRows(this.arrayholder1),
-            isLoading:false
+            isLoading:false,
+            modalCarritoVisible:false
           }, function() {
 
           });
 }
   render(){
-    
     if(this.state.isLoading){
         return(<View/>)           
     }
@@ -174,7 +214,7 @@ addShoppinCar(producto){
                           underlineColorAndroid='transparent'
                           placeholder="Search Here"
                           />
-                          <TouchableOpacity style={styles.botonHeader} onPress={()=>{alert("you clicked me")}}>
+                          <TouchableOpacity style={styles.botonHeader} onPress={this.GetListCar.bind(this)}>
                             <Image source={require("../assets/images/shopping_car.png")}/>
                           </TouchableOpacity>
                         </View>
@@ -231,6 +271,35 @@ addShoppinCar(producto){
                             <Button style={styles.botonModal} title="Cerrar" color="black" onPress={this.setStateModal.bind(this)}></Button>
 
                           </View>
+                        </View>
+                      </Modal>
+
+
+                      <Modal
+                        style={styles.modal2}
+                        position='center'
+                        backdrop={true}
+                        isOpen={this.state.modalCarritoVisible}>
+                        <View style={styles.modal3}>
+                        <View style={styles.modalImg1}>
+                          <Text>   Img  </Text>
+                          <Text>Nombre  </Text>
+                          <Text>Precio</Text>
+                        </View>
+                        <ListView
+                        style={styles.containerList}
+                        dataSource={this.state.dataSource1}
+                        renderRow={(data) =>
+                          <View style={styles.modalImg1}>
+                            <Image
+                              source={{ uri: data.imagen}}
+                              style={styles.img1}
+                            />
+                            <Text>{data.producto} </Text>
+                            <Text>₡{data.precio}</Text>
+                          </View>
+                            }
+                      /><Button style={styles.botonModal} title="Cerrar" color="black" onPress={this.setStateModalCarrito.bind(this)}></Button>
                         </View>
                       </Modal>
               </View>
