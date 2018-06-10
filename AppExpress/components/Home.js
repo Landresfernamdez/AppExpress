@@ -32,6 +32,8 @@ const styles = StyleSheet.create({
   },modalImg1: {
     marginTop: 10,
     flexDirection: 'row',
+  },elemento:{
+    flexDirection: 'column',
   },modal1: {
     flex: 1,
     flexDirection: 'column',
@@ -50,8 +52,9 @@ const styles = StyleSheet.create({
   img1:{
     marginTop: 10,
     marginLeft: 0,
-    width: 50,
-    height: 50,
+    width: 30,
+    height: 30,
+    flexDirection: 'column',
   },img_car:{
     marginTop: 10,
     marginLeft: 0,
@@ -78,6 +81,18 @@ const styles = StyleSheet.create({
     padding: 10,
     width:45,
     height:45,
+    marginBottom: 20,
+    shadowColor: '#303838',
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    shadowOpacity: 0.35,
+  },botonHeader1:{
+    marginRight:0,
+    backgroundColor: '#859a9b',
+    borderRadius: 5,
+    padding: 10,
+    width:30,
+    height:30,
     marginBottom: 20,
     shadowColor: '#303838',
     shadowOffset: { width: 0, height: 5 },
@@ -110,9 +125,9 @@ export default class Home extends React.Component {
     }, 25000);
     this.arrayholder=[{'nombre':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
     let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    this.arrayholder1=[{'producto':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
+    this.arrayholder1=[];
     let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    this.state = {
+    this.state = { 
       value:0,
       dataSource:ds.cloneWithRows(this.arrayholder),
       dataSource1:ds.cloneWithRows(this.arrayholder1),
@@ -187,18 +202,53 @@ setStateModalCarrito(){
                })
 
 }
+//Se encarga de modificar la cantidad del producto en el carrito
+agregarUnidades(cantidad,nombre){
+  var listaCarrito=this.arrayholder1;
+  for(var x=0;x<listaCarrito.length;x++){
+    if(listaCarrito[x].producto==nombre){
+        this.arrayholder1[x].cantidad=this.arrayholder1[x].cantidad+cantidad;
+    }
+  }
+}
+//Se encarga de verificar si existe el producto en el carrito
+existeProducto(nombre){
+  var listaCarrito=this.arrayholder1;
+  for(var x=0;x<listaCarrito.length;x++){
+    if(listaCarrito[x].producto==nombre){
+      return true;
+    }
+  }
+  return false;
+}
+DeleteFromCar(nombre){
+  var listaCarrito=this.arrayholder1;
+  for(var x=0;x<listaCarrito.length;x++){
+    if(listaCarrito[x].producto==nombre){
+      this.arrayholder1.splice(x,1);
+      this.GetListCar();
+    }
+  }
+}
 addShoppinCar(producto){
   console.log(producto);
-    this.arrayholder1.push(producto);
-    console.log(this.arrayholder1);
-    let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-          this.setState({
-            dataSource1: ds1.cloneWithRows(this.arrayholder1),
-            isLoading:false,
-            modalCarritoVisible:false
-          }, function() {
-
-          });
+    producto.cantidad=this.state.value;
+    if(this.existeProducto(producto.producto)){
+        console.log("Ya esta el producto en el carrito");
+        this.agregarUnidades(this.state.value,producto.producto);
+    }
+    else{
+      this.arrayholder1.push(producto);
+      console.log(this.arrayholder1);
+      let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+            this.setState({
+              dataSource1: ds1.cloneWithRows(this.arrayholder1),
+              isLoading:false,
+              modalCarritoVisible:false
+            }, function() {
+  
+            });
+    }
 }
   render(){
     if(this.state.isLoading){
@@ -215,7 +265,7 @@ addShoppinCar(producto){
                           placeholder="Search Here"
                           />
                           <TouchableOpacity style={styles.botonHeader} onPress={this.GetListCar.bind(this)}>
-                            <Image source={require("../assets/images/shopping_car.png")}/>
+                            <Image source={require("../assets/images/shopping_cart.png")}/>
                           </TouchableOpacity>
                         </View>
                       <ListView
@@ -231,22 +281,25 @@ addShoppinCar(producto){
                             <Text onPress={this.GetListViewItem.bind(this, data.producto)}>{data.producto}</Text>
                             <Text onPress={this.GetListViewItem.bind(this, data.producto)}> Precio: ${data.precio}</Text>
                             <View style={styles.container1}>
-                              <Button title='Detalles' color="black" onPress={this.GetListViewItem.bind(this,data)}/>
-                              <Button title='+' color="black" onPress={this.addShoppinCar.bind(this,data)}/>
-                              <NumericInput 
-                                      value={this.state.value} 
+                              <Button title='Detalles' color="black" backgroundColor="#859a9b" onPress={this.GetListViewItem.bind(this,data)}/>
+                              <TouchableOpacity style={styles.botonHeader} onPress={this.addShoppinCar.bind(this,data)}>
+                                <Image source={require("../assets/images/shopping_car.png")}/>
+                              </TouchableOpacity>
+                            </View>
+                            <NumericInput 
+                                      min={1}
+                                      max={100}
                                       onChange={value => this.setState({value})} 
                                       totalWidth={calcSize(240)} 
                                       totalHeight={calcSize(50)} 
                                       iconSize={calcSize(25)}
-                                      step={1.5}
+                                      step={1}
                                       valueType='real'
                                       rounded 
                                       textColor='#B0228C' 
                                       iconStyle={{ color: 'black' }} 
                                       rightButtonBackgroundColor='#EA3788' 
                                       leftButtonBackgroundColor='#E56B70'/>
-                            </View>
                             </View>
                           </View>
                             }
@@ -273,8 +326,6 @@ addShoppinCar(producto){
                           </View>
                         </View>
                       </Modal>
-
-
                       <Modal
                         style={styles.modal2}
                         position='center'
@@ -282,9 +333,11 @@ addShoppinCar(producto){
                         isOpen={this.state.modalCarritoVisible}>
                         <View style={styles.modal3}>
                         <View style={styles.modalImg1}>
-                          <Text>   Img  </Text>
-                          <Text>Nombre  </Text>
-                          <Text>Precio</Text>
+                          <Text style={styles.elemento}>   Img  </Text>
+                          <Text style={styles.elemento}>Nombre  </Text>
+                          <Text style={styles.elemento}>Precio  </Text>
+                          <Text style={styles.elemento}>Cantidad  </Text>
+                          <Text style={styles.elemento}>Subtotal</Text>
                         </View>
                         <ListView
                         style={styles.containerList}
@@ -295,8 +348,13 @@ addShoppinCar(producto){
                               source={{ uri: data.imagen}}
                               style={styles.img1}
                             />
-                            <Text>{data.producto} </Text>
-                            <Text>₡{data.precio}</Text>
+                            <Text style={styles.elemento}>{data.producto}  </Text>
+                            <Text style={styles.elemento}>₡{data.precio}  </Text>
+                            <Text style={styles.elemento}>{data.cantidad}  </Text>
+                            <Text style={styles.elemento}>{data.cantidad*data.precio}</Text>
+                            <TouchableOpacity style={styles.botonHeader1} onPress={this.DeleteFromCar.bind(this,data.producto)}>
+                            <Image source={require("../assets/images/remove_shopping_cart.png")}/>
+                            </TouchableOpacity>
                           </View>
                             }
                       /><Button style={styles.botonModal} title="Cerrar" color="black" onPress={this.setStateModalCarrito.bind(this)}></Button>
