@@ -32,6 +32,9 @@
     "react-native-search-list": "^0.1.0",
     "react-native-select-picker": "0.0.3",
     "react-navigation": "^1.0.0-beta.29",
-    "react-timer-mixin": "^0.13.3"
+    "react-redux": "^5.0.7",
+    "react-timer-mixin": "^0.13.3",
+    "redux": "^4.0.0",
+    "redux-thunk": "^2.3.0"
   }
 }

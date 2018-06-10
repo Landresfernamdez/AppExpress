@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-native-modalbox'
 import axios from 'axios';
 import { ListView, Text, View, Image, StyleSheet,TextInput, ActivityIndicator, Alert,
-Dimensions,Platform,TouchableHighlight} from 'react-native';
+Dimensions,Platform,TouchableHighlight,TouchableOpacity} from 'react-native';
 import { Button } from 'react-native-elements';
 import NumericInput,{ calcSize } from 'react-native-numeric-input';
 var screen=Dimensions.get('window');
@@ -15,7 +15,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 0,
     flexDirection: 'row',
-  },container2: {
+  },containerHeader: {
+    marginTop: 0,
+    marginLeft: 0,
+    flexDirection: 'row',
+    height:20
+  },container2:{
     flex: 1,
     marginTop: 10,
     flexDirection: 'column',
@@ -43,12 +48,26 @@ const styles = StyleSheet.create({
     height:280
   },botonModal:{
     marginBottom:0
+  },botonHeader:{
+    marginRight:0,
+    backgroundColor: '#859a9b',
+    borderRadius: 5,
+    padding: 10,
+    width:45,
+    height:45,
+    marginBottom: 20,
+    shadowColor: '#303838',
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    shadowOpacity: 0.35,
+
   },icon: {
     width: 24,
     height: 24,
   },TextInputStyleClass:{
     backgroundColor:'#8AE2FF',
-    height:45
+    height:45,
+    width:300
   }
 });
 export default class Home extends React.Component {
@@ -72,6 +91,7 @@ export default class Home extends React.Component {
     this.arrayholder1=[{'nombre':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
     let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
+      value:0,
       dataSource:ds.cloneWithRows(this.arrayholder),
       dataSource1:ds.cloneWithRows(this.arrayholder1),
       text:"",
@@ -146,13 +166,18 @@ addShoppinCar(producto){
     }
     return( 
               <View style={styles.containerList}>
-                        <TextInput 
-                        style={styles.TextInputStyleClass}
-                        onChangeText={(text) => this.SearchFilterFunction(text)}
-                        value={this.state.text}
-                        underlineColorAndroid='transparent'
-                        placeholder="Search Here"
-                        />
+                        <View  style={styles.containerHeader}>
+                          <TextInput 
+                          style={styles.TextInputStyleClass}
+                          onChangeText={(text) => this.SearchFilterFunction(text)}
+                          value={this.state.text}
+                          underlineColorAndroid='transparent'
+                          placeholder="Search Here"
+                          />
+                          <TouchableOpacity style={styles.botonHeader} onPress={()=>{alert("you clicked me")}}>
+                            <Image source={require("../assets/images/shopping_car.png")}/>
+                          </TouchableOpacity>
+                        </View>
                       <ListView
                         style={styles.containerList}
                         dataSource={this.state.dataSource}

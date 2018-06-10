@@ -13,6 +13,8 @@ import { DrawerNavigator, StackNavigator, DrawerItems, SafeAreaView} from 'react
 
 //custom files 
 import Home from "./components/Home";
+
+
 export default class App extends Component {
 
   render() {
@@ -45,7 +47,7 @@ const MyApp = DrawerNavigator({
   }
 },
   {
-    initialRouteName:'Home',
+    initialRouteName: 'Home',
     drawerPosition: 'left',
     contentComponent: CustomDrawerContentComponent,
     drawerOpenRoute: 'DrawerOpen',
