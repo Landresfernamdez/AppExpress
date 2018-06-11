@@ -28,8 +28,10 @@ export default class Home extends React.Component {
   constructor(props){
     super(props);
     this.bandera=true;
+    this.total=0;
+    this.id_cliente="";
     this.interval= setInterval(() => {
-      this.componentDidMount();
+      this.cargarLosProductos();
     }, 25000);
     this.sesion=false;
     this.arrayholder=[{'nombre':"Ensalada",'imagen':"https://mobile-cdn.123rf.com/300wm/serezniy/serezniy1110/serezniy111000110/10752709-sabrosa-ensalada-griega-en-recipiente-transparente-aislado-en-blanco.jpg?ver=6",'precio':1000,'ingredientes':'Tomate,lechuga,pepino,limon','cantidadcalorias':'5'}];
@@ -58,22 +60,26 @@ export default class Home extends React.Component {
     };
 
   }
+  cargarLosProductos(){
+    axios.get('https://guarded-eyrie-96688.herokuapp.com/seleccionarProductos')
+    .then(response=>{
+      let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+      this.arrayholder=response.data.data;
+      this.setState({
+        dataSource: ds.cloneWithRows(response.data.data),
+        isLoading:false
+      }, function() {
+        // In this block you can do something with new state.
+        this.arrayholder = response.data.data;
+      })
+    }).catch(function (error) {
+      return error.data
+  })
+  }
   componentDidMount(){
-    console.log("Entro a prueba");
-      axios.get('https://guarded-eyrie-96688.herokuapp.com/seleccionarProductos')
-      .then(response=>{
-        let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        this.arrayholder=response.data.data;
-        this.setState({
-          dataSource: ds.cloneWithRows(response.data.data),
-          isLoading:false
-        }, function() {
-          // In this block you can do something with new state.
-          this.arrayholder = response.data.data;
-        })
-      }).catch(function (error) {
-        return error.data
-    })
+      if(this.state.isLoading){
+        this.cargarLosProductos();
+      }
       navigator.geolocation.getCurrentPosition(
         (position) => {
           var inicia={
@@ -88,19 +94,6 @@ export default class Home extends React.Component {
         },
         (error) => {alert("Ha ocurrido un error")}
       );
-  }
-  /*onRegionChange(region){
-    //this.componentDidMount();  
-    this.setState({
-        region:this.state.region
-      })
-  }*/
-  onMapPress = (e) => {
-    /*this.setState({
-      coordinates: [
-        e.nativeEvent.coordinate,
-      ]
-    });*/
   }
   SearchFilterFunction(text){
     const newData = this.arrayholder.filter(function(item){
@@ -128,6 +121,7 @@ GetListViewItem (data){
                 }
   GetListCar(){
       console.log(this.arrayholder1);
+      this.calculaTotalPedido();
       let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
             this.setState({
               dataSource1: ds.cloneWithRows(this.arrayholder1),
@@ -144,37 +138,46 @@ setStateModalCarrito(){
   this.setState({
     'modalCarritoVisible':false
                })
-
 }
 BuyCar(){
-  this.setState({
+  if(this.state.sesion==true){
+    this.setState({modalVisiblePedido:true});
+  }
+  else{
+    this.setState({
       modalVisibleLoginVisible:true
   });
+  }
 }
 validarLogin(){
-  /*axios.post('https://guarded-eyrie-96688.herokuapp.com/iniciarSesionCliente',{
+  console.log(this.state.userName+","+this.state.password)
+  //https://guarded-eyrie-96688.herokuapp.com
+  axios.post('https://guarded-eyrie-96688.herokuapp.com/iniciarSesionCliente',{
     correo:this.state.userName,
     contrasena:this.state.password
     })
     .then(result => {
         console.log(result);
         if(result.data.success==true){
-            console.log("Usuario Invalido")
+          this.id_cliente=result.data.data.id;
+          console.log("Id_cliente:"+this.id_cliente);  
+          //Si se autentica inicia la fase del pedido
+            this.setState({
+              modalCarritoVisible:false,
+              modalVisibleLoginVisible:false,
+              modalVisiblePedido:true,
+              sesion:true
+            })
         }
         else{
-            console.log("Usuario valido")
+            alert("Credenciales incorrectas");
             }
         }
     )
     .catch(error=> {
     console.log(error);
-    });*/
-    //Si se autentica inicia la fase del pedido
-    this.setState({
-      modalCarritoVisible:false,
-      modalVisibleLoginVisible:false,
-      modalVisiblePedido:true
-    })
+    });
+    
 }
 //Se encarga de modificar la cantidad del producto en el carrito
 agregarUnidades(cantidad,nombre){
@@ -184,6 +187,28 @@ agregarUnidades(cantidad,nombre){
         this.arrayholder1[x].cantidad=this.arrayholder1[x].cantidad+cantidad;
     }
   }
+}
+pagarPedido(){
+    axios.post('http://192.168.43.47:5000/realizarPedido',{
+      idCliente:this.id_cliente,
+      longitud:this.state.region.longitude,
+      latitud:this.state.region.latitude,
+      precioFinal:this.total,
+      listaProductos:this.arrayholder1
+     })
+    .then(result => {
+        console.log(result);
+        if(result.data.success==true){
+          alert("Se inserto el pedido con exito")
+        }
+        else{
+            alert("Problemas de red, revise su conexion a internet")
+            }
+        }
+    )
+    .catch(error=> {
+    console.log(error);
+    });
 }
 //Se encarga de verificar si existe el producto en el carrito
 existeProducto(nombre){
@@ -200,9 +225,19 @@ DeleteFromCar(nombre){
   for(var x=0;x<listaCarrito.length;x++){
     if(listaCarrito[x].producto==nombre){
       this.arrayholder1.splice(x,1);
+      this.calculaTotalPedido();
       this.GetListCar();
     }
   }
+}
+calculaTotalPedido(){
+  var listaPedido=this.arrayholder1;
+  var total=0;
+  for(var x=0;x<listaPedido.length;x++){
+    var subtotal=listaPedido[x].precio*listaPedido[x].cantidad;
+    total=total+subtotal;
+  }
+  this.total=total;
 }
 addShoppinCar(producto){
   console.log(producto);
@@ -218,7 +253,7 @@ addShoppinCar(producto){
             this.setState({
               dataSource1: ds1.cloneWithRows(this.arrayholder1),
               isLoading:false,
-              modalCarritoVisible:false
+              value:0
             }, function() {
   
             });
@@ -347,9 +382,12 @@ addShoppinCar(producto){
                           </View>
                             }
                       />
-                      <TouchableOpacity style={styles.botonHeader} onPress={this.BuyCar.bind(this)}>
-                                <Image source={require("../assets/images/payment.png")}/>
-                        </TouchableOpacity>
+                      <View style={styles.modalImg1}>
+                        <TouchableOpacity style={styles.botonHeader} onPress={this.BuyCar.bind(this)}>
+                                  <Image source={require("../assets/images/payment.png")}/>
+                          </TouchableOpacity>
+                          <Text>Total: ₡{this.total}</Text>
+                      </View>
                         </View>
                       </Modal>
                       {/*Este es el modal del Login*/}
@@ -385,7 +423,6 @@ addShoppinCar(producto){
                         </View>
                       </Modal>
                       {/*Este es el modal del Pedido*/}
-                      {/*onRegionChange={this.onRegionChange}*/}
                       <Modal
                         style={styles.modalPedidos}
                         position='center'
@@ -401,12 +438,24 @@ addShoppinCar(producto){
                                   region={this.state.region}
                                   style={styles.map}
                                   ref={c => this.mapView = c}
-                                  onPress={(event)=> console.log(event.nativeEvent.coordinate)}
+                                  onPress={(event)=>{ 
+                                    console.log(event.nativeEvent.coordinate)
+                                    var regionActual={
+                                      latitude:event.nativeEvent.coordinate.latitude,
+                                      longitude:event.nativeEvent.coordinate.longitude,
+                                      longitudeDelta:LONGITUDE_DELTA,
+                                      latitudeDelta:LATITUDE_DELTA
+                                    }
+                                    this.setState({region:regionActual});
+                                  }}
                               >
                               <Marker
                                 coordinate={this.state.region}/>
                               </MapView>
                         </View>
+                        <TouchableOpacity style={styles.botonHeader} onPress={this.pagarPedido.bind(this)}>
+                                <Image source={require("../assets/images/payment.png")}/>
+                        </TouchableOpacity>
                       </Modal>
               </View>
     );
@@ -414,8 +463,9 @@ addShoppinCar(producto){
 }
 const styles = StyleSheet.create({
   map:{
-    height:200,
-    width:200
+    marginTop: 0,
+    height:500,
+    width:350
   },
   containerLogin:{
     alignItems: 'center',
@@ -454,7 +504,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flexDirection: 'column',
   },modalImg1: {
-    marginTop: 10,
     flexDirection: 'row',
   },elemento:{
     flexDirection: 'column',
@@ -491,7 +540,6 @@ const styles = StyleSheet.create({
     width:screen.width-80,
     height:280
   },modalPedidos:{
-    justifyContent:'center',
     borderRadius: Platform.OS==='android'?30:0,
     shadowRadius: 10,
     width:screen.width-10,
@@ -506,9 +554,8 @@ const styles = StyleSheet.create({
     marginBottom:0
   },botonHeader:{
     marginRight:0,
-    backgroundColor: '#859a9b',
+    backgroundColor:'#859a9b',
     borderRadius: 5,
-    padding: 10,
     width:45,
     height:45,
     marginBottom: 20,

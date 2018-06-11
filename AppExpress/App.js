@@ -29,7 +29,7 @@ const CustomDrawerContentComponent = (props) => (
       <Body>
         <Image
           style={styles.drawerImage}
-          source={{uri:"https://omicrono.elespanol.com/wp-content/uploads/2015/12/android-logo.jpg"}} />
+          source={require('./assets/images/logo_instantfoodcr.png')} />
       </Body>
     </Header>
     <Content>
