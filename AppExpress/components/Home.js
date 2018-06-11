@@ -194,7 +194,7 @@ agregarUnidades(cantidad,nombre){
   }
 }
 pagarPedido(){
-    axios.post('http://192.168.43.47:5000/realizarPedido',{
+    axios.post('https://guarded-eyrie-96688.herokuapp.com/realizarPedido',{
       idCliente:this.id_cliente,
       longitud:this.state.region.longitude,
       latitud:this.state.region.latitude,
