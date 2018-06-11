@@ -30,6 +30,7 @@ export default class Home extends React.Component {
     this.bandera=true;
     this.total=0;
     this.id_cliente="";
+    //Esta variable se encarga de ejecutar un hilo que corre cada 25 segundos actualizando la lista de productos
     this.interval= setInterval(() => {
       this.cargarLosProductos();
     }, 25000);
@@ -60,6 +61,7 @@ export default class Home extends React.Component {
     };
 
   }
+  //Se encarga de cargar los productos
   cargarLosProductos(){
     axios.get('https://guarded-eyrie-96688.herokuapp.com/seleccionarProductos')
     .then(response=>{
@@ -76,6 +78,7 @@ export default class Home extends React.Component {
       return error.data
   })
   }
+  //Funcion que corre al inicio del proyecto
   componentDidMount(){
       if(this.state.isLoading){
         this.cargarLosProductos();
@@ -95,6 +98,7 @@ export default class Home extends React.Component {
         (error) => {alert("Ha ocurrido un error")}
       );
   }
+  //Esta funcion se encarga de buscar en la lista por nombre y hacer un filtro
   SearchFilterFunction(text){
     const newData = this.arrayholder.filter(function(item){
         const itemData = item.producto.toUpperCase()
@@ -106,6 +110,7 @@ export default class Home extends React.Component {
         text: text
     })
 }
+//Esta funcion se encarga de recuperar un elemento de la lista
 GetListViewItem (data){
     this.setState({
       'producto':
@@ -119,7 +124,9 @@ GetListViewItem (data){
       'modalVisible':true
                  })
                 }
-  GetListCar(){
+
+//Esta funcion se encarga de generar las lista del carrito 
+GetListCar(){
       console.log(this.arrayholder1);
       this.calculaTotalPedido();
       let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -129,6 +136,8 @@ GetListViewItem (data){
             }, function() {
             })
                 }
+
+ //Estas funciones se encargan de poner los modal no visibles               
  setStateModal(){
   this.setState({
     'modalVisible':false
@@ -154,9 +163,9 @@ BuyCar(){
   });
   }
 }
+//Esta funcion se encarga de validar las credenciales
 validarLogin(){
   console.log(this.state.userName+","+this.state.password)
-  //https://guarded-eyrie-96688.herokuapp.com
   axios.post('https://guarded-eyrie-96688.herokuapp.com/iniciarSesionCliente',{
     correo:this.state.userName,
     contrasena:this.state.password
@@ -193,6 +202,7 @@ agregarUnidades(cantidad,nombre){
     }
   }
 }
+//Funcion que se encarga de hacer el proceso de pago
 pagarPedido(){
     axios.post('https://guarded-eyrie-96688.herokuapp.com/realizarPedido',{
       idCliente:this.id_cliente,
