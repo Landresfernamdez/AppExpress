@@ -134,6 +134,11 @@ GetListViewItem (data){
     'modalVisible':false
                })
 }
+setStateModalPedido(){
+  this.setState({
+    'modalVisiblePedido':false
+               })
+}
 setStateModalCarrito(){
   this.setState({
     'modalCarritoVisible':false
@@ -453,9 +458,14 @@ addShoppinCar(producto){
                                 coordinate={this.state.region}/>
                               </MapView>
                         </View>
+                        <View style={styles.modalImg1}>
                         <TouchableOpacity style={styles.botonHeader} onPress={this.pagarPedido.bind(this)}>
                                 <Image source={require("../assets/images/payment.png")}/>
                         </TouchableOpacity>
+                        <Button style={styles.botonModal} title="Cerrar" color="black" onPress={this.setStateModalPedido.bind(this)}></Button>
+
+                        </View>
+                        
                       </Modal>
               </View>
     );

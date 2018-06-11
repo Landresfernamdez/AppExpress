@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#8AE2FF'
   },
   drawerImage:{
-    height: 150,
-    width: 150,
+    height: 110,
+    width: 250,
     borderRadius: 75,
     backgroundColor:'white'
   }
