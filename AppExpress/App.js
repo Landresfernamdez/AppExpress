@@ -13,8 +13,6 @@ import { DrawerNavigator, StackNavigator, DrawerItems, SafeAreaView} from 'react
 
 //custom files 
 import Home from "./components/Home";
-
-
 export default class App extends Component {
 
   render() {

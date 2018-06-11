@@ -5,7 +5,15 @@ import { ListView, Text, View, Image, StyleSheet,TextInput, ActivityIndicator, A
 Dimensions,Platform,TouchableHighlight,TouchableOpacity} from 'react-native';
 import { Button,FormLabel, FormInput } from 'react-native-elements';
 import NumericInput,{ calcSize } from 'react-native-numeric-input';
+import MapView,{Marker} from 'react-native-maps';
 var screen=Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const ASPECT_RATIO = width / height;
+const GOOGLE_MAPS_APIKEY = 'AIzaSyC8mGks3qbFCLzbum4CpqhGMhaOucjq3iY';
+const LATITUDE = 9.936064;
+const LONGITUDE = -84.103382;
+const LATITUDE_DELTA = 0.0922;
+const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 export default class Home extends React.Component {
   static navigationOptions = {
@@ -29,6 +37,12 @@ export default class Home extends React.Component {
     this.arrayholder1=[];
     let ds1 = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
+      region:{
+        latitude:LATITUDE,
+        longitude:LONGITUDE,
+        longitudeDelta:LONGITUDE_DELTA,
+        latitudeDelta:LATITUDE_DELTA,
+      },
       userName:'',
       password:'', 
       modalVisibleLoginVisible:false,
@@ -39,7 +53,8 @@ export default class Home extends React.Component {
       modalVisible:false,
       modalCarritoVisible:false,
       producto:{'producto':'','imagen':'','precio':'','ingredientes':'','cantidadcalorias':''},
-      isLoading: true
+      isLoading: true,
+      modalVisiblePedido:false
     };
 
   }
@@ -59,6 +74,33 @@ export default class Home extends React.Component {
       }).catch(function (error) {
         return error.data
     })
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          var inicia={
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            longitudeDelta:LONGITUDE_DELTA,
+            latitudeDelta:LATITUDE_DELTA
+          }
+          this.setState({
+            region:inicia
+          });
+        },
+        (error) => {alert("Ha ocurrido un error")}
+      );
+  }
+  /*onRegionChange(region){
+    //this.componentDidMount();  
+    this.setState({
+        region:this.state.region
+      })
+  }*/
+  onMapPress = (e) => {
+    /*this.setState({
+      coordinates: [
+        e.nativeEvent.coordinate,
+      ]
+    });*/
   }
   SearchFilterFunction(text){
     const newData = this.arrayholder.filter(function(item){
@@ -110,7 +152,7 @@ BuyCar(){
   });
 }
 validarLogin(){
-  axios.post('http://172.24.113.47:5000/iniciarSesionCliente',{
+  /*axios.post('https://guarded-eyrie-96688.herokuapp.com/iniciarSesionCliente',{
     correo:this.state.userName,
     contrasena:this.state.password
     })
@@ -126,7 +168,13 @@ validarLogin(){
     )
     .catch(error=> {
     console.log(error);
-    });
+    });*/
+    //Si se autentica inicia la fase del pedido
+    this.setState({
+      modalCarritoVisible:false,
+      modalVisibleLoginVisible:false,
+      modalVisiblePedido:true
+    })
 }
 //Se encarga de modificar la cantidad del producto en el carrito
 agregarUnidades(cantidad,nombre){
@@ -235,7 +283,12 @@ addShoppinCar(producto){
                         style={styles.modal}
                         position='center'
                         backdrop={true}
-                        isOpen={this.state.modalVisible}>
+                        isOpen={this.state.modalVisible}
+                        onClosingState={()=>{
+                          this.setState({
+                            modalVisible:false
+                          })
+                        }}>
                         <View style={styles.modal1}>
                           <View style={styles.modalImg}>
                             <Image
@@ -258,7 +311,12 @@ addShoppinCar(producto){
                         style={styles.modal2}
                         position='center'
                         backdrop={true}
-                        isOpen={this.state.modalCarritoVisible}>
+                        isOpen={this.state.modalCarritoVisible}
+                        onClosingState={()=>{
+                          this.setState({
+                            modalCarritoVisible:false
+                          })
+                        }}>
                         <View style={styles.modal3}>
                         <View style={styles.modalImg1}>
                           <Text style={styles.elemento}>   Img  </Text>
@@ -299,6 +357,11 @@ addShoppinCar(producto){
                         style={styles.modal}
                         position='center'
                         backdrop={true}
+                        onClosingState={()=>{
+                          this.setState({
+                            modalVisibleLoginVisible:false
+                          })
+                        }}
                         isOpen={this.state.modalVisibleLoginVisible}>
                         <View style={styles.containerLogin}>
                             <Text >Bienvenido a InstantFoodExpress</Text>
@@ -321,11 +384,39 @@ addShoppinCar(producto){
                             />
                         </View>
                       </Modal>
+                      {/*Este es el modal del Pedido*/}
+                      {/*onRegionChange={this.onRegionChange}*/}
+                      <Modal
+                        style={styles.modalPedidos}
+                        position='center'
+                        backdrop={true}
+                        onClosingState={()=>{
+                          this.setState({
+                            modalVisiblePedido:false
+                          })
+                        }}
+                        isOpen={this.state.modalVisiblePedido}>
+                        <View style={styles.containerLogin}>
+                              <MapView
+                                  region={this.state.region}
+                                  style={styles.map}
+                                  ref={c => this.mapView = c}
+                                  onPress={(event)=> console.log(event.nativeEvent.coordinate)}
+                              >
+                              <Marker
+                                coordinate={this.state.region}/>
+                              </MapView>
+                        </View>
+                      </Modal>
               </View>
     );
   }
 }
 const styles = StyleSheet.create({
+  map:{
+    height:200,
+    width:200
+  },
   containerLogin:{
     alignItems: 'center',
     justifyContent: 'center',
@@ -399,6 +490,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     width:screen.width-80,
     height:280
+  },modalPedidos:{
+    justifyContent:'center',
+    borderRadius: Platform.OS==='android'?30:0,
+    shadowRadius: 10,
+    width:screen.width-10,
+    height:screen.height-10
   },modal2:{
     justifyContent:'center',
     borderRadius: Platform.OS==='android'?30:0,
